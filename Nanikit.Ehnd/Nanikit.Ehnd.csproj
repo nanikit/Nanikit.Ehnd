@@ -12,6 +12,7 @@
     <Description>Ehnd C# binding library</Description>
     <Company />
     <Authors>nanikit</Authors>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>

@@ -30,4 +30,4 @@ jobs:
           dotnet pack --configuration Release
       # Publish the package to GitHub Package Registry
       - name: Publish to github packages
-        run: dotnet nuget push Nanikit.Ehnd/bin/x86/Release/*.nupkg
+        run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg
