@@ -29,12 +29,12 @@ namespace Nanikit.Ehnd {
       _j2kFree = GetFuncAddress<J2K_FreeMem>(eztransDll, "J2K_FreeMem");
     }
 
-    public Task<string> Translate(string jpStr) {
-      return Task.Run(() => TranslateInternal(jpStr));
+    public string Translate(string jpStr) {
+      return TranslateInternal(jpStr);
     }
 
-    public async Task<bool> IsHdorEnabled() {
-      string? chk = await Translate("蜜ドル辞典").ConfigureAwait(false);
+    public bool IsHdorEnabled() {
+      string? chk = Translate("蜜ドル辞典");
       return chk?.Contains("OK") ?? false;
     }
 

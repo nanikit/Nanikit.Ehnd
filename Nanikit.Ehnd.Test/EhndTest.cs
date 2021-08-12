@@ -7,13 +7,11 @@ namespace Nanikit.Ehnd.Test {
 
     public EhndTest() {
       ehnd = new Ehnd();
-      Assert.Equal("╡э", ehnd.Translate("зл").GetAwaiter().GetResult());
+      Assert.Equal("╡э", ehnd.Translate("зл"));
     }
 
     private void TestPreservation(string str) {
-      Task<string> t = ehnd.Translate(str);
-      t.Wait();
-      Assert.Equal(str, t.Result);
+      Assert.Equal(str, ehnd.Translate(str));
     }
 
     [Fact]
