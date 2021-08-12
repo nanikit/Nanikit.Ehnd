@@ -16,7 +16,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 5.0
+          dotnet-version: '5.0'
         env:
           # Setup the .NET Core SDK with the appropriate auth token to access the GitHub Package Registry
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
