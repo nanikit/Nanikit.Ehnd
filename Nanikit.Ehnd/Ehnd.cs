@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 
 namespace Nanikit.Ehnd {
   public class EhndException : Exception {
@@ -16,6 +15,9 @@ namespace Nanikit.Ehnd {
     public EhndNotFoundException(string message) : base($"Ehnd를 찾지 못했습니다{message}") { }
   }
 
+  /// <summary>
+  /// Ehnd C# binding
+  /// </summary>
   public class Ehnd {
     private static readonly string _dllName = "J2KEngine.dll";
 
@@ -29,15 +31,24 @@ namespace Nanikit.Ehnd {
       _j2kFree = GetFuncAddress<J2K_FreeMem>(eztransDll, "J2K_FreeMem");
     }
 
-    public string Translate(string jpStr) {
-      return TranslateInternal(jpStr);
+    /// <summary>
+    /// Translates japanese to korean. Not thread safe.
+    /// </summary>
+    public string Translate(string japanese) {
+      return TranslateInternal(japanese);
     }
 
+    /// <summary>
+    /// Returns true if Hdor dictionary is installed. Not thread safe.
+    /// </summary>
     public bool IsHdorEnabled() {
       string? chk = Translate("蜜ドル辞典");
       return chk?.Contains("OK") ?? false;
     }
 
+    /// <summary>
+    /// Returns guessed eztrans installed directory.
+    /// </summary>
     public static string? GetEztransDirFromReg() {
       RegistryKey key = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
       return key.OpenSubKey(@"Software\ChangShin\ezTrans")?.GetValue(@"FilePath") as string;
@@ -63,7 +74,6 @@ namespace Nanikit.Ehnd {
         throw new EhndException($"라이브러리 로드 실패(에러 코드: {errorCode})");
       }
 
-      //await Task.Delay(msDelay).ConfigureAwait(false);
       string key = Path.Combine(Path.GetDirectoryName(path)!, "Dat");
       var initEx = GetFuncAddress<J2K_InitializeEx>(dll, "J2K_InitializeEx");
       if (!initEx("CSUSER123455", key)) {
