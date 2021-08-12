@@ -122,9 +122,7 @@ namespace Nanikit.Ehnd {
       return chk?.Contains("OK") ?? false;
     }
 
-    public void Dispose() {
-      // 원래 FreeLibrary를 호출하려 했는데 그러면 Access violation이 뜬다.
-    }
+    // 원래 FreeLibrary를 호출하려 했는데 그러면 Access violation이 뜬다.
 
     private string TranslateInternal(string jpStr) {
       var escaper = new EztransEscaper();
