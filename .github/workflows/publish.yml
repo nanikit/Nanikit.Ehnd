@@ -11,23 +11,20 @@ jobs:
       DOTNET_NOLOGO: true
     steps:
       # Checkout the repo
-      - uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@master
         with:
           fetch-depth: 0
       # Setup .NET Core SDK
-      - name: Setup .NET core
+      - name: Setup
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '5.0'
-          source-url: https://nuget.pkg.github.com/nanikit/index.json
-        env:
-          # Setup the .NET Core SDK with the appropriate auth token to access the GitHub Package Registry
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Run dotnet build and package
       - name: Package
         run: |
           dotnet restore
           dotnet pack --configuration Release
       # Publish the package to GitHub Package Registry
-      - name: Publish to github packages
-        run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg
+      - name: Publish
+        run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }}
