@@ -1,0 +1,31 @@
+name: nuget publish
+
+on:
+  push:
+    branches: [ release ]
+
+jobs:
+  github-publish:
+    runs-on: windows-latest
+    steps:
+      # Checkout the repo
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+      # Setup .NET Core SDK
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0
+        env:
+          # Setup the .NET Core SDK with the appropriate auth token to access the GitHub Package Registry
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Run dotnet build and package
+      - name: dotnet build and publish
+        run: |
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet pack --configuration Release      
+      # Publish the package to GitHub Package Registry
+      - name: dotnet publish
+        run: dotnet nuget push bin/Release/*.nupkg
