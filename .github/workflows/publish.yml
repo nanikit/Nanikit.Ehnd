@@ -7,6 +7,8 @@ on:
 jobs:
   github-publish:
     runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
     steps:
       # Checkout the repo
       - uses: actions/checkout@master
@@ -21,13 +23,11 @@ jobs:
         env:
           # Setup the .NET Core SDK with the appropriate auth token to access the GitHub Package Registry
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOTNET_NOLOGO: true
       # Run dotnet build and package
       - name: Package
         run: |
           dotnet restore
-          dotnet build --configuration Release
           dotnet pack --configuration Release
       # Publish the package to GitHub Package Registry
       - name: Publish to github packages
-        run: dotnet nuget push bin/Release/*.nupkg
+        run: dotnet nuget push Nanikit.Ehnd/bin/x86/Release/*.nupkg
