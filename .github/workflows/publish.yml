@@ -27,4 +27,4 @@ jobs:
           dotnet pack --configuration Release
       # Publish the package to GitHub Package Registry
       - name: Publish
-        run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }}
+        run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
