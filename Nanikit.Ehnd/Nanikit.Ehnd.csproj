@@ -13,6 +13,8 @@
     <Company />
     <Authors>nanikit</Authors>
     <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>
