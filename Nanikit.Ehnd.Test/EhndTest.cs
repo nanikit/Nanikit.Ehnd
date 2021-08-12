@@ -3,14 +3,15 @@ using Xunit;
 
 namespace Nanikit.Ehnd.Test {
   public class EhndTest {
-    readonly Ehnd trans;
+    readonly Ehnd ehnd;
 
     public EhndTest() {
-      trans = Ehnd.Create().GetAwaiter().GetResult();
+      ehnd = new Ehnd();
+      Assert.Equal("²Ü", ehnd.Translate("ÚÌ").GetAwaiter().GetResult());
     }
 
     private void TestPreservation(string str) {
-      Task<string> t = trans.Translate(str);
+      Task<string> t = ehnd.Translate(str);
       t.Wait();
       Assert.Equal(str, t.Result);
     }
@@ -42,6 +43,11 @@ namespace Nanikit.Ehnd.Test {
     [Fact]
     public void WhitespacePreservationTest4() {
       TestPreservation("\n\n\n ¡¡\n\n");
+    }
+
+    [Fact]
+    public void InitializationTest() {
+   
     }
   }
 }

@@ -17,43 +17,25 @@ namespace Nanikit.Ehnd {
   }
 
   public class Ehnd {
+    private static readonly string _dllName = "J2KEngine.dll";
 
-    public static async Task<Ehnd> Create(string? eztPath = null, int msDelay = 200) {
-      var exceptions = new Dictionary<string, Exception>();
-      foreach (string path in GetEztransDirs(eztPath)) {
-        if (!File.Exists(Path.Combine(path, "J2KEngine.dll"))) {
-          continue;
-        }
-        try {
-          IntPtr eztransDll = await LoadNativeDll(path, msDelay).ConfigureAwait(false);
-          return new Ehnd(eztransDll);
-        }
-        catch (Exception e) {
-          exceptions.Add(path, e);
-        }
-      }
+    private readonly J2K_FreeMem _j2kFree;
+    private readonly J2K_TranslateMMNTW _j2kMmntw;
 
-      string detail = string.Join("", exceptions.Select(x => $"\n  {x.Key}: {x.Value.Message}"));
-      throw new EhndNotFoundException(detail);
+    public Ehnd(string? dllPath = null) : this(LoadDll(dllPath)) { }
+
+    private Ehnd(IntPtr eztransDll) {
+      _j2kMmntw = GetFuncAddress<J2K_TranslateMMNTW>(eztransDll, "J2K_TranslateMMNTW");
+      _j2kFree = GetFuncAddress<J2K_FreeMem>(eztransDll, "J2K_FreeMem");
     }
 
-    private static IEnumerable<string> GetEztransDirs(string? path) {
-      var paths = new List<string>();
+    public Task<string> Translate(string jpStr) {
+      return Task.Run(() => TranslateInternal(jpStr));
+    }
 
-      if (path != null) {
-        paths.Add(path);
-      }
-
-      string? regPath = GetEztransDirFromReg();
-      if (regPath != null) {
-        paths.Add(regPath);
-      }
-
-      string defPath = @"C:\Program Files (x86)\ChangShinSoft\ezTrans XP";
-      paths.Add(defPath);
-      paths.AddRange(GetAssemblyParentDirectories());
-
-      return paths.Distinct();
+    public async Task<bool> IsHdorEnabled() {
+      string? chk = await Translate("蜜ドル辞典").ConfigureAwait(false);
+      return chk?.Contains("OK") ?? false;
     }
 
     public static string? GetEztransDirFromReg() {
@@ -74,26 +56,21 @@ namespace Nanikit.Ehnd {
       }
     }
 
-    private static async Task<IntPtr> LoadNativeDll(string eztPath, int msDelay) {
-      string path = GetDllPath(eztPath);
+    private static IntPtr LoadNativeDll(string path) {
       IntPtr dll = NativeLibrary.Load(path);
       if (dll == IntPtr.Zero) {
         int errorCode = Marshal.GetLastWin32Error();
         throw new EhndException($"라이브러리 로드 실패(에러 코드: {errorCode})");
       }
 
-      await Task.Delay(msDelay).ConfigureAwait(false);
-      string key = Path.Combine(eztPath, "Dat");
+      //await Task.Delay(msDelay).ConfigureAwait(false);
+      string key = Path.Combine(Path.GetDirectoryName(path)!, "Dat");
       var initEx = GetFuncAddress<J2K_InitializeEx>(dll, "J2K_InitializeEx");
       if (!initEx("CSUSER123455", key)) {
         throw new EhndException("엔진 초기화에 실패했습니다.");
       }
 
       return dll;
-    }
-
-    private static string GetDllPath(string eztPath) {
-      return Path.Combine(eztPath, "J2KEngine.dll");
     }
 
     private static T GetFuncAddress<T>(IntPtr dll, string name) {
@@ -104,37 +81,56 @@ namespace Nanikit.Ehnd {
       return Marshal.GetDelegateForFunctionPointer<T>(addr);
     }
 
+    private static IntPtr LoadDll(string? dllPath) {
+      var exceptions = new Dictionary<string, Exception>();
+      foreach (string path in GetDllSearchPaths(dllPath)) {
+        if (!File.Exists(path)) {
+          continue;
+        }
+        try {
+          return LoadNativeDll(path);
+        }
+        catch (Exception e) {
+          exceptions.Add(path, e);
+        }
+      }
 
-    private readonly J2K_FreeMem J2kFree;
-    private readonly J2K_TranslateMMNTW J2kMmntw;
-
-    private Ehnd(IntPtr eztransDll) {
-      J2kMmntw = GetFuncAddress<J2K_TranslateMMNTW>(eztransDll, "J2K_TranslateMMNTW");
-      J2kFree = GetFuncAddress<J2K_FreeMem>(eztransDll, "J2K_FreeMem");
+      string detail = string.Join("", exceptions.Select(x => $"\n  {x.Key}: {x.Value.Message}"));
+      throw new EhndNotFoundException(detail);
     }
 
-    public Task<string> Translate(string jpStr) {
-      return Task.Run(() => TranslateInternal(jpStr));
-    }
+    private static IEnumerable<string> GetDllSearchPaths(string? path) {
+      var paths = new List<string>();
 
-    public async Task<bool> IsHdorEnabled() {
-      string? chk = await Translate("蜜ドル辞典").ConfigureAwait(false);
-      return chk?.Contains("OK") ?? false;
-    }
+      if (path != null) {
+        paths.Add(path);
+      }
 
-    // 원래 FreeLibrary를 호출하려 했는데 그러면 Access violation이 뜬다.
+      string? regPath = GetEztransDirFromReg();
+      if (regPath != null) {
+        paths.Add($"{regPath}\\{_dllName}");
+      }
+
+      string defPath = @"C:\Program Files (x86)\ChangShinSoft\ezTrans XP";
+      paths.Add($"{defPath}\\{_dllName}");
+      paths.AddRange(GetAssemblyParentDirectories().Select(x => Path.Combine(x, _dllName)));
+
+      return paths.Distinct();
+    }
 
     private string TranslateInternal(string jpStr) {
       var escaper = new EztransEscaper();
       string escaped = escaper.Escape(jpStr);
-      IntPtr p = J2kMmntw(0, escaped);
+      IntPtr p = _j2kMmntw(0, escaped);
       if (p == IntPtr.Zero) {
         throw new EhndException("이지트랜스에서 알 수 없는 오류가 발생했습니다");
       }
       string? ret = Marshal.PtrToStringAuto(p);
-      J2kFree(p);
+      _j2kFree(p);
       return escaper.Unescape(ret ?? "");
     }
+
+    // FreeLibrary를 호출하면 Access violation이 뜬다.
 
     #region PInvoke
     delegate bool J2K_InitializeEx(
