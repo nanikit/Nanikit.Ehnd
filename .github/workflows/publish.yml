@@ -2,7 +2,7 @@ name: nuget publish
 
 on:
   push:
-    branches: [ release ]
+    branches: [release]
 
 jobs:
   github-publish:
@@ -25,7 +25,7 @@ jobs:
         run: |
           dotnet restore
           dotnet build --configuration Release
-          dotnet pack --configuration Release      
+          dotnet pack --configuration Release
       # Publish the package to GitHub Package Registry
       - name: dotnet publish
-        run: dotnet nuget push bin/Release/*.nupkg
+        run: dotnet nuget push --source "github" bin/Release/*.nupkg
