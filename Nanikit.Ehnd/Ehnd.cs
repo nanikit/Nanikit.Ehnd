@@ -19,7 +19,7 @@ namespace Nanikit.Ehnd {
   /// Ehnd C# binding
   /// </summary>
   public class Ehnd {
-    private static readonly string _dllName = "J2KEngine.dll";
+    public static readonly string DllName = "J2KEngine.dll";
 
     private readonly J2K_FreeMem _j2kFree;
     private readonly J2K_TranslateMMNTW _j2kMmntw;
@@ -118,12 +118,12 @@ namespace Nanikit.Ehnd {
 
       string? regPath = GetEztransDirFromReg();
       if (regPath != null) {
-        paths.Add($"{regPath}\\{_dllName}");
+        paths.Add($"{regPath}\\{DllName}");
       }
 
       string defPath = @"C:\Program Files (x86)\ChangShinSoft\ezTrans XP";
-      paths.Add($"{defPath}\\{_dllName}");
-      paths.AddRange(GetAssemblyParentDirectories().Select(x => Path.Combine(x, _dllName)));
+      paths.Add($"{defPath}\\{DllName}");
+      paths.AddRange(GetAssemblyParentDirectories().Select(x => Path.Combine(x, DllName)));
 
       return paths.Distinct();
     }
