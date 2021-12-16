@@ -5,10 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Nanikit.Ehnd {
+  public interface IEhnd {
+    Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null);
+  }
+
   /// <summary>
   /// Ehnd C# binding
   /// </summary>
-  public class Ehnd {
+  public class Ehnd : IEhnd {
     public static readonly string DllName = EhndInterop.DllName;
 
     /// <summary>
