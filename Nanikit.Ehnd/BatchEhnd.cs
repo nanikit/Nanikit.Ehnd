@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,55 +11,7 @@ namespace Nanikit.Ehnd {
   /// <summary>
   /// It merge / split translation works for single threaded deterministic translator.
   /// </summary>
-  public class BatchEhnd : IEhnd {
-    private readonly IEhnd ehnd;
-
-    public BatchEhnd(IEhnd ehnd) {
-      this.ehnd = ehnd;
-      _worker = ProcessQueue();
-    }
-
-    public async Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
-      var work = new Work(japanese);
-      await _works.Writer.WriteAsync(work).ConfigureAwait(false);
-      return await work.Client.Task;
-    }
-
-    public async Task ProcessQueue() {
-      CancellationToken token = _cancellation.Token;
-      while (!token.IsCancellationRequested) {
-        List<Work> works = await GetWorksOfThisRound(token).ConfigureAwait(false);
-
-        IEnumerable<string> texts = works.Select(x => x.Text);
-        string mergedStart = string.Join("\n", texts);
-        System.Diagnostics.Debug.WriteLine($"[[[{mergedStart}]]]");
-        string mergedEnd = await ehnd.TranslateAsync(mergedStart).ConfigureAwait(false) ?? "";
-
-        string[] translateds = SplitBySegmentNewline(mergedEnd, texts).ToArray();
-
-        for (int i = 0; i < works.Count; i++) {
-          works[i].Client.TrySetResult(translateds[i]);
-        }
-      }
-    }
-
-    private class Work {
-      public readonly string Text;
-      public readonly TaskCompletionSource<string> Client;
-
-      public Work(string text) {
-        Text = text;
-        Client = new TaskCompletionSource<string>();
-      }
-    }
-
-    private readonly Task _worker;
-    private readonly Channel<Work> _works = Channel.CreateUnbounded<Work>(new UnboundedChannelOptions() {
-      SingleReader = true,
-      SingleWriter = true,
-      AllowSynchronousContinuations = true,
-    });
-    private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+  public class BatchEhnd : IEhnd, IDisposable {
 
     private static IEnumerable<string> SplitBySegmentNewline(string merged, IEnumerable<string> texts) {
       int startIdx = 0;
@@ -83,6 +36,59 @@ namespace Nanikit.Ehnd {
       return idx;
     }
 
+    public BatchEhnd(IEhnd ehnd) {
+      _ehnd = ehnd;
+      _worker = ProcessQueue();
+    }
+
+    public async Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
+      var work = new Work(japanese);
+      await _works.Writer.WriteAsync(work).ConfigureAwait(false);
+      return await work.Client.Task;
+    }
+
+    public void Dispose() {
+      _cancellation.Cancel();
+      _cancellation.Dispose();
+      GC.SuppressFinalize(this);
+    }
+
+    private class Work {
+      public readonly string Text;
+      public readonly TaskCompletionSource<string> Client;
+
+      public Work(string text) {
+        Text = text;
+        Client = new TaskCompletionSource<string>();
+      }
+    }
+
+    private readonly IEhnd _ehnd;
+    private readonly Task _worker;
+    private readonly Channel<Work> _works = Channel.CreateUnbounded<Work>(new UnboundedChannelOptions() {
+      SingleReader = true,
+      SingleWriter = true,
+      AllowSynchronousContinuations = true,
+    });
+    private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+
+    private async Task ProcessQueue() {
+      CancellationToken token = _cancellation.Token;
+      while (!token.IsCancellationRequested) {
+        List<Work> works = await GetWorksOfThisRound(token).ConfigureAwait(false);
+
+        IEnumerable<string> texts = works.Select(x => x.Text);
+        string mergedStart = string.Join("\n", texts);
+        string mergedEnd = await _ehnd.TranslateAsync(mergedStart).ConfigureAwait(false) ?? "";
+
+        string[] translateds = SplitBySegmentNewline(mergedEnd, texts).ToArray();
+
+        for (int i = 0; i < works.Count; i++) {
+          works[i].Client.TrySetResult(translateds[i]);
+        }
+      }
+    }
+
     private async Task<List<Work>> GetWorksOfThisRound(CancellationToken token) {
       var works = new List<Work>();
       long length = 0;
@@ -96,11 +102,5 @@ namespace Nanikit.Ehnd {
 
       return works;
     }
-
-    public void Dispose() {
-      _cancellation.Cancel();
-      _cancellation.Dispose();
-    }
-
   }
 }

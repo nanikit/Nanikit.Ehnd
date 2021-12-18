@@ -8,5 +8,4 @@
   public class EhndNotFoundException : EhndException {
     public EhndNotFoundException(string message) : base($"Ehnd를 찾지 못했습니다{message}") { }
   }
-
 }

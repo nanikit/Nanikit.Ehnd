@@ -19,9 +19,9 @@ namespace Nanikit.Ehnd {
       Space
     }
 
-    private static readonly string Escaper = "[;:}";
-    private static readonly EncodingTester Sjis = new EncodingTester(932);
-    private static readonly Regex RxDecode =
+    private static readonly string _escaper = "[;:}";
+    private static readonly EncodingTester _shiftJis = new EncodingTester(932);
+    private static readonly Regex _decodeRegex =
       new Regex(@"(\r\n)|(\[;:})|[\r\[]|[^\r\[]+", RegexOptions.Compiled);
 
     /// <summary>
@@ -37,14 +37,8 @@ namespace Nanikit.Ehnd {
     private static bool IsUnsafeChar(char c) {
       return c == '@' // Hdor escape character
         || c == '-' // It may be changed to ―
-        || !Sjis.IsEncodable(c);
+        || !_shiftJis.IsEncodable(c);
     }
-
-
-    private readonly List<string> preserveds = new List<string>();
-    private readonly StringBuilder buffer = new StringBuilder();
-    private readonly StringBuilder escaping = new StringBuilder();
-    private EscapeKind kind = EscapeKind.None;
 
     public string Escape(string notEscaped) {
       buffer.Clear();
@@ -57,7 +51,7 @@ namespace Nanikit.Ehnd {
         else if (IsUnsafeChar(c)) {
           SetEscapingKind(EscapeKind.None);
           preserveds.Add(c.ToString());
-          buffer.Append(Escaper);
+          buffer.Append(_escaper);
         }
         else {
           buffer.Append(c);
@@ -72,7 +66,7 @@ namespace Nanikit.Ehnd {
       buffer.Clear();
 
       List<string>.Enumerator hydrate = preserveds.GetEnumerator();
-      foreach (Match m in RxDecode.Matches(escaped)) {
+      foreach (Match m in _decodeRegex.Matches(escaped)) {
         if (m.Groups[1].Success || m.Groups[2].Success) {
           hydrate.MoveNext();
           buffer.Append(hydrate.Current);
@@ -84,6 +78,11 @@ namespace Nanikit.Ehnd {
 
       return buffer.ToString();
     }
+
+    private readonly List<string> preserveds = new List<string>();
+    private readonly StringBuilder buffer = new StringBuilder();
+    private readonly StringBuilder escaping = new StringBuilder();
+    private EscapeKind kind = EscapeKind.None;
 
     private bool FeedEscape(char c) {
       if (IsSequenceMutableSymbol(c)) {
@@ -124,7 +123,7 @@ namespace Nanikit.Ehnd {
         buffer.Append(space);
       }
       else {
-        buffer.Append(Escaper);
+        buffer.Append(_escaper);
         preserveds.Add(space);
       }
     }
