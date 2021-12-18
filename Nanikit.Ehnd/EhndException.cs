@@ -1,4 +1,4 @@
-﻿namespace Nanikit.Ehnd {
+namespace Nanikit.Ehnd {
   using System;
 
   public class EhndException : Exception {
