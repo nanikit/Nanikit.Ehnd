@@ -70,7 +70,7 @@ namespace Nanikit.Ehnd {
       SingleWriter = true,
       AllowSynchronousContinuations = true,
     });
-    private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
+    private readonly CancellationTokenSource _cancellation = new();
 
     private async Task ProcessQueue() {
       CancellationToken token = _cancellation.Token;

@@ -81,7 +81,7 @@ namespace Nanikit.Ehnd.Test {
       _output = output;
     }
 
-    public List<string> Receivals = new List<string>();
+    public List<string> Receivals = new();
 
     public Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
       Receivals.Add(japanese);

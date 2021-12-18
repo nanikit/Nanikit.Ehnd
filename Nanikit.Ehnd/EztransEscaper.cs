@@ -20,9 +20,9 @@ namespace Nanikit.Ehnd {
     }
 
     private static readonly string _escaper = "[;:}";
-    private static readonly EncodingTester _shiftJis = new EncodingTester(932);
+    private static readonly EncodingTester _shiftJis = new(932);
     private static readonly Regex _decodeRegex =
-      new Regex(@"(\r\n)|(\[;:})|[\r\[]|[^\r\[]+", RegexOptions.Compiled);
+      new(@"(\r\n)|(\[;:})|[\r\[]|[^\r\[]+", RegexOptions.Compiled);
 
     /// <summary>
     /// Filter characters which can be modified if repeated.
@@ -79,9 +79,9 @@ namespace Nanikit.Ehnd {
       return buffer.ToString();
     }
 
-    private readonly List<string> preserveds = new List<string>();
-    private readonly StringBuilder buffer = new StringBuilder();
-    private readonly StringBuilder escaping = new StringBuilder();
+    private readonly List<string> preserveds = new();
+    private readonly StringBuilder buffer = new();
+    private readonly StringBuilder escaping = new();
     private EscapeKind kind = EscapeKind.None;
 
     private bool FeedEscape(char c) {

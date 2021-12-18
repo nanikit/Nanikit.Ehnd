@@ -69,7 +69,7 @@ namespace Nanikit.Ehnd {
     private readonly J2K_FreeMem _j2kFree;
     private readonly J2K_TranslateMMNTW _j2kMmntw;
 
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+    private readonly SemaphoreSlim _semaphore = new(1);
 
     // FreeLibrary를 호출하면 Access violation이 뜬다.
 

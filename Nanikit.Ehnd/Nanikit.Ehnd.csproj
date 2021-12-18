@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
-    <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <Platforms>x86</Platforms>
     <RepositoryUrl>https://github.com/nanikit/Nanikit.Ehnd.git</RepositoryUrl>
