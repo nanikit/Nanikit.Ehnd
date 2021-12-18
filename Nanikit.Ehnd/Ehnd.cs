@@ -47,6 +47,9 @@ namespace Nanikit.Ehnd {
       return escaper.Unescape(ret ?? "");
     }
 
+    /// <summary>
+    /// Queue translation to ehnd. Thread safe.
+    /// </summary>
     public async Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
       await _semaphore.WaitAsync(cancellationToken ?? CancellationToken.None).ConfigureAwait(false);
 
