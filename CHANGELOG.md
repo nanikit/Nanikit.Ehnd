@@ -1,6 +1,9 @@
+# 2.2.0
+- BatchEhnd doesn't ignore exception when underlying translator throws.
+
 # 2.1.0
-- Added TranslateAsync() which is thread safe.
-- Added BatchEhnd, which aggregates strings and send it at once (for performance).
+- Add TranslateAsync() which is thread safe.
+- Add BatchEhnd, which aggregates strings and send it at once (for performance).
 
 # 2.0.0
 - Remove Ehnd.Create. Use constructor instead.

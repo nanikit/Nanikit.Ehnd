@@ -73,6 +73,20 @@ namespace Nanikit.Ehnd.Test {
 
       Assert.True(batchTime < rawTime, "No performance gain");
     }
+
+    [Fact]
+    public async Task TestException() {
+      var batch = new BatchEhnd(new ThrowEhnd());
+      await Assert.ThrowsAsync<BatchTestException>(() => batch.TranslateAsync(_japanese));
+    }
+  }
+
+  class BatchTestException : Exception { }
+
+  class ThrowEhnd : IEhnd {
+    public Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
+      throw new BatchTestException();
+    }
   }
 
   class EhndMock : IEhnd {
