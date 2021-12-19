@@ -6,6 +6,10 @@ namespace Nanikit.Ehnd {
   }
 
   public class EhndNotFoundException : EhndException {
-    public EhndNotFoundException(string message) : base($"Ehnd를 찾지 못했습니다{message}") { }
+    public EhndNotFoundException(string? details) : base($"Ehnd를 찾지 못했습니다") {
+      Details = details;
+    }
+
+    public string? Details { get; set; }
   }
 }

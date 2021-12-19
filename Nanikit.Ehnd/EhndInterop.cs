@@ -22,21 +22,22 @@ namespace Nanikit.Ehnd {
     }
 
     public static IntPtr LoadDll(string? dllPath) {
-      var exceptions = new Dictionary<string, Exception>();
+      var details = new List<string>();
+
       foreach (string path in GetDllSearchPaths(dllPath)) {
         if (!File.Exists(path)) {
+          details.Add($"{path}: not exists");
           continue;
         }
         try {
           return LoadNativeDll(path);
         }
-        catch (Exception e) {
-          exceptions.Add(path, e);
+        catch (Exception exception) {
+          details.Add($"{path}: {exception.Message}");
         }
       }
 
-      string detail = string.Join("", exceptions.Select(x => $"\n  {x.Key}: {x.Value.Message}"));
-      throw new EhndNotFoundException(detail);
+      throw new EhndNotFoundException(string.Join('\n', details));
     }
 
     public static T GetFuncAddress<T>(IntPtr dll, string name) {
@@ -45,6 +46,25 @@ namespace Nanikit.Ehnd {
         throw new EhndException("Ehnd 파일이 아닙니다.");
       }
       return Marshal.GetDelegateForFunctionPointer<T>(addr);
+    }
+
+    public static IEnumerable<string> GetDllSearchPaths(string? path) {
+      var paths = new List<string>();
+
+      if (path != null) {
+        paths.Add(path);
+      }
+
+      string? regPath = GetEztransDirFromReg();
+      if (regPath != null) {
+        paths.Add($"{regPath}\\{DllName}");
+      }
+
+      string defPath = @"C:\Program Files (x86)\ChangShinSoft\ezTrans XP";
+      paths.Add($"{defPath}\\{DllName}");
+      paths.AddRange(GetAssemblyParentDirectories().Select(x => Path.Combine(x, DllName)));
+
+      return paths.Distinct();
     }
 
     private static IEnumerable<string> GetAssemblyParentDirectories() {
@@ -74,25 +94,6 @@ namespace Nanikit.Ehnd {
       }
 
       return dll;
-    }
-
-    private static IEnumerable<string> GetDllSearchPaths(string? path) {
-      var paths = new List<string>();
-
-      if (path != null) {
-        paths.Add(path);
-      }
-
-      string? regPath = GetEztransDirFromReg();
-      if (regPath != null) {
-        paths.Add($"{regPath}\\{DllName}");
-      }
-
-      string defPath = @"C:\Program Files (x86)\ChangShinSoft\ezTrans XP";
-      paths.Add($"{defPath}\\{DllName}");
-      paths.AddRange(GetAssemblyParentDirectories().Select(x => Path.Combine(x, DllName)));
-
-      return paths.Distinct();
     }
 
     // FreeLibrary를 호출하면 Access violation이 뜬다.
