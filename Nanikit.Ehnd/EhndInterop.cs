@@ -68,15 +68,8 @@ namespace Nanikit.Ehnd {
     }
 
     private static IEnumerable<string> GetAssemblyParentDirectories() {
-      var assembly = System.Reflection.Assembly.GetEntryAssembly();
-      string child = assembly?.Location ?? Directory.GetCurrentDirectory();
-      while (true) {
-        string? parent = Path.GetDirectoryName(child);
-        if (parent == null) {
-          break;
-        }
-        yield return parent;
-        child = parent;
+      for (string? directory = AppContext.BaseDirectory; directory != null; directory = Path.GetDirectoryName(directory)) {
+        yield return directory;
       }
     }
 
