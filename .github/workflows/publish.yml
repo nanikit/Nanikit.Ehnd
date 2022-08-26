@@ -12,19 +12,17 @@ jobs:
     steps:
       # Checkout the repo
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@main
         with:
           fetch-depth: 0
       # Setup .NET Core SDK
       - name: Setup
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@main
         with:
-          dotnet-version: '5.0'
+          dotnet-version: "6.0"
       # Run dotnet build and package
       - name: Package
-        run: |
-          dotnet restore
-          dotnet pack --configuration Release
+        run: dotnet pack --configuration Release
       # Publish the package to GitHub Package Registry
       - name: Publish
         run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
