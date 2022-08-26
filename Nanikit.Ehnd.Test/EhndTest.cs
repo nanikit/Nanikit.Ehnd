@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -51,7 +49,7 @@ namespace Nanikit.Ehnd.Test {
     public void TestParallelism() {
       string japanese = "ご支援に対する感謝のしるしとして提供するもので、商品として販売しているものではありません。";
       string korean = "지원에 대한 감사의 표시로서 제공해서, 상품으로서 판매하고 있는 것이 아닙니다.";
-      Task<string>[] tasks = Enumerable.Range(0, 100).Select((_) => {
+      var tasks = Enumerable.Range(0, 100).Select((_) => {
         return Task.Run(() => ehnd.TranslateAsync(japanese));
       }).ToArray();
 

@@ -17,7 +17,7 @@ namespace Nanikit.Ehnd {
     /// Returns guessed eztrans installed directory.
     /// </summary>
     public static string? GetEztransDirFromReg() {
-      RegistryKey key = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
+      var key = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
       return key.OpenSubKey(@"Software\ChangShin\ezTrans")?.GetValue("FilePath") as string;
     }
 
@@ -37,11 +37,11 @@ namespace Nanikit.Ehnd {
         }
       }
 
-      throw new EhndNotFoundException(string.Join('\n', details));
+      throw new EhndNotFoundException(string.Join("\n", details));
     }
 
     public static T GetFuncAddress<T>(IntPtr dll, string name) {
-      IntPtr addr = NativeLibrary.GetExport(dll, name);
+      var addr = NativeLibrary.GetExport(dll, name);
       if (addr == IntPtr.Zero) {
         throw new EhndException("Ehnd 파일이 아닙니다.");
       }
@@ -74,7 +74,7 @@ namespace Nanikit.Ehnd {
     }
 
     private static IntPtr LoadNativeDll(string path) {
-      IntPtr dll = NativeLibrary.Load(path);
+      var dll = NativeLibrary.Load(path);
       if (dll == IntPtr.Zero) {
         int errorCode = Marshal.GetLastWin32Error();
         throw new EhndException($"라이브러리 로드 실패(에러 코드: {errorCode})");

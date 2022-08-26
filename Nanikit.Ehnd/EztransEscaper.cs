@@ -28,7 +28,7 @@ namespace Nanikit.Ehnd {
     /// Filter characters which can be modified if repeated.
     /// </summary>
     private static bool IsSequenceMutableSymbol(char c) {
-      return "─―#\\".Contains(c);
+      return "─―#\\".IndexOf(c) != -1;
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ namespace Nanikit.Ehnd {
     public string Unescape(string escaped) {
       buffer.Clear();
 
-      List<string>.Enumerator hydrate = preserveds.GetEnumerator();
+      var hydrate = preserveds.GetEnumerator();
       foreach (Match m in _decodeRegex.Matches(escaped)) {
         if (m.Groups[1].Success || m.Groups[2].Success) {
           hydrate.MoveNext();
@@ -115,7 +115,7 @@ namespace Nanikit.Ehnd {
       if (space.Length == 0) {
         return;
       }
-      else if (space.Contains('\n')) {
+      else if (space.IndexOf('\n') != -1) {
         buffer.Append("\r\n");
         preserveds.Add(space);
       }

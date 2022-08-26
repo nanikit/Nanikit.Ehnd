@@ -24,7 +24,7 @@ namespace Nanikit.Ehnd.Test {
     public void TestMerge() {
       var mock = new EhndMock(_output);
       var batch = new BatchEhnd(mock);
-      Task<string>[] tasks = Enumerable.Range(0, 100).Select((_) => {
+      var tasks = Enumerable.Range(0, 100).Select((_) => {
         return Task.Run(() => batch.TranslateAsync(_japanese));
       }).ToArray();
 
@@ -44,7 +44,7 @@ namespace Nanikit.Ehnd.Test {
       var watch = new Stopwatch();
       watch.Start();
 
-      Task<string>[] tasks = Enumerable.Range(0, 100).Select((_) => {
+      var tasks = Enumerable.Range(0, 100).Select((_) => {
         return Task.Run(() => batch.TranslateAsync(_japanese));
       }).ToArray();
 
@@ -55,7 +55,7 @@ namespace Nanikit.Ehnd.Test {
         Assert.Equal(_korean, task.Result);
       });
       _output.WriteLine($"Batch elapsed: {watch.Elapsed}");
-      TimeSpan batchTime = watch.Elapsed;
+      var batchTime = watch.Elapsed;
 
       watch.Restart();
       tasks = Enumerable.Range(0, 100).Select((_) => {
@@ -69,7 +69,7 @@ namespace Nanikit.Ehnd.Test {
         Assert.Equal(_korean, task.Result);
       });
       _output.WriteLine($"Raw elapsed: {watch.Elapsed}");
-      TimeSpan rawTime = watch.Elapsed;
+      var rawTime = watch.Elapsed;
 
       Assert.True(batchTime < rawTime, "No performance gain");
     }

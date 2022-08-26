@@ -18,7 +18,7 @@ namespace Nanikit.Ehnd {
       foreach (string text in texts) {
         int newlineCount = text.Count((c) => c == '\n');
         int endIdx = GetNthNewlineFrom(merged, newlineCount, startIdx);
-        yield return merged[startIdx..endIdx];
+        yield return merged.Substring(startIdx, endIdx);
         startIdx = endIdx + 1;
       }
     }

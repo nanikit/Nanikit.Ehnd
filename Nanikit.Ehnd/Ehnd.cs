@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Nanikit.Ehnd {
+  /// <summary>
+  /// Deterministic japanese to korean translation engine.
+  /// </summary>
   public interface IEhnd {
     Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null);
   }
@@ -27,7 +30,7 @@ namespace Nanikit.Ehnd {
     /// </summary>
     /// <param name="dllPath">J2KEngine.dll path</param>
     public Ehnd(string? dllPath = null) {
-      IntPtr eztransDll = EhndInterop.LoadDll(dllPath);
+      var eztransDll = EhndInterop.LoadDll(dllPath);
       _j2kFree = EhndInterop.GetFuncAddress<J2K_FreeMem>(eztransDll, "J2K_FreeMem");
       _j2kMmntw = EhndInterop.GetFuncAddress<J2K_TranslateMMNTW>(eztransDll, "J2K_TranslateMMNTW");
     }
@@ -38,7 +41,7 @@ namespace Nanikit.Ehnd {
     public string Translate(string japanese) {
       var escaper = new EztransEscaper();
       string escaped = escaper.Escape(japanese);
-      IntPtr p = _j2kMmntw(0, escaped);
+      var p = _j2kMmntw(0, escaped);
       if (p == IntPtr.Zero) {
         throw new EhndException("이지트랜스에서 알 수 없는 오류가 발생했습니다");
       }
