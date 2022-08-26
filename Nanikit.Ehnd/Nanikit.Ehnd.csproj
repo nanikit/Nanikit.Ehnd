@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>enable</Nullable>
     <Platforms>x86</Platforms>
+    <LangVersion>10</LangVersion>
     <RepositoryUrl>https://github.com/nanikit/Nanikit.Ehnd.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/nanikit/Nanikit.Ehnd</PackageProjectUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="Shim4DotNetFramework.NativeLibrary" Version="1.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
   </ItemGroup>
@@ -30,5 +31,4 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
 </Project>

@@ -1,3 +1,6 @@
+# 3.0.0
+- Change target framework from .NET 5 to .NET Standard 2.0.
+
 ## 2.3.0
 - Add `details` field containing search path information to EztransNotFoundException.
 
