@@ -54,7 +54,7 @@ jobs:
         run: |
           version=${{needs.test.outputs.version}}
           dotnet pack --include-source --configuration Release -p:Version=$version
-          dotnet nuget push Nanikit.Ehnd/bin/Release/*.symbols.nupkg \
+          dotnet nuget push Nanikit.Ehnd/bin/x86/Release/*.nupkg \
             --api-key ${{ secrets.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json
           git tag v$version
