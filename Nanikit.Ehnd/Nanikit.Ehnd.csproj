@@ -7,13 +7,10 @@
     <RepositoryUrl>https://github.com/nanikit/Nanikit.Ehnd.git</RepositoryUrl>
     <PackageProjectUrl>https://github.com/nanikit/Nanikit.Ehnd</PackageProjectUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <Copyright>Copyright© 2021~ nanikit all rights reserved</Copyright>
+    <Copyright>Copyright© 2021~ nanikit</Copyright>
     <Description>Ehnd C# binding library</Description>
     <Company />
     <Authors>nanikit</Authors>
-    <RepositoryType>git</RepositoryType>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Version>3.0.0</Version>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
   </PropertyGroup>
