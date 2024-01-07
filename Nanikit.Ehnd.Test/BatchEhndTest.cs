@@ -1,45 +1,39 @@
-using System;
-using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Nanikit.Ehnd.Test {
-  public class BatchEhndTest {
-    private readonly Ehnd _ehnd;
 
+  [TestClass]
+  public class BatchEhndTest {
     private readonly string _japanese = "ご支援に対する感謝のしるしとして提供するもので、商品として販売しているものではありません。";
     private readonly string _korean = "지원에 대한 감사의 표시로서 제공해서, 상품으로서 판매하고 있는 것이 아닙니다.";
-    private readonly ITestOutputHelper _output;
 
-    public BatchEhndTest(ITestOutputHelper output) {
-      _output = output;
-      _ehnd = new Ehnd();
+    [TestMethod]
+    public async Task TestException() {
+      var batch = new BatchEhnd(new ThrowingEhnd());
+
+      await Assert.ThrowsExceptionAsync<BatchTestException>(() => batch.TranslateAsync(_japanese));
     }
 
-    [Fact]
-    public void TestMerge() {
-      var mock = new EhndMock(_output);
+    [TestMethod]
+    public async Task TestMerge() {
+      var mock = new EhndMock();
       var batch = new BatchEhnd(mock);
       var tasks = Enumerable.Range(0, 100).Select((_) => {
-        return Task.Run(() => batch.TranslateAsync(_japanese));
+        return batch.TranslateAsync(_japanese);
       }).ToArray();
 
-      Task.WaitAll(tasks);
+      string[] result = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-      Assert.All(tasks, task => {
-        Assert.Equal(_japanese, task.Result);
-      });
-
-      Assert.True(mock.Receivals.Any(x => x.Length != _japanese.Length), "No batch was done");
+      CollectionAssert.AreEqual(Enumerable.Repeat(_japanese, 100).ToArray(), result);
+      Assert.IsFalse(mock.Receivals.All(x => x.Length == _japanese.Length), "No batch was done");
     }
 
-    [Fact]
-    public void TestPerformance() {
-      var batch = new BatchEhnd(_ehnd);
+    [TestCategory("NoCi")]
+    [TestMethod]
+    public async Task TestPerformance() {
+      var ehnd = new Ehnd();
+      var batch = new BatchEhnd(ehnd);
 
       var watch = new Stopwatch();
       watch.Start();
@@ -48,59 +42,46 @@ namespace Nanikit.Ehnd.Test {
         return Task.Run(() => batch.TranslateAsync(_japanese));
       }).ToArray();
 
-      Task.WaitAll(tasks);
+      string[] result = await Task.WhenAll(tasks).ConfigureAwait(false);
       watch.Stop();
 
-      Assert.All(tasks, task => {
-        Assert.Equal(_korean, task.Result);
-      });
-      _output.WriteLine($"Batch elapsed: {watch.Elapsed}");
+      CollectionAssert.AreEqual(Enumerable.Repeat(_korean, 100).ToArray(), result);
+      Trace.WriteLine($"Batch elapsed: {watch.Elapsed}");
       var batchTime = watch.Elapsed;
 
       watch.Restart();
       tasks = Enumerable.Range(0, 100).Select((_) => {
-        return Task.Run(() => _ehnd.TranslateAsync(_japanese));
+        return Task.Run(() => ehnd.TranslateAsync(_japanese));
       }).ToArray();
 
-      Task.WaitAll(tasks);
+      result = await Task.WhenAll(tasks).ConfigureAwait(false);
       watch.Stop();
 
-      Assert.All(tasks, task => {
-        Assert.Equal(_korean, task.Result);
-      });
-      _output.WriteLine($"Raw elapsed: {watch.Elapsed}");
+      CollectionAssert.AreEqual(Enumerable.Repeat(_korean, 100).ToArray(), result);
+      Trace.WriteLine($"Raw elapsed: {watch.Elapsed}");
       var rawTime = watch.Elapsed;
 
-      Assert.True(batchTime < rawTime, "No performance gain");
-    }
-
-    [Fact]
-    public async Task TestException() {
-      var batch = new BatchEhnd(new ThrowEhnd());
-      await Assert.ThrowsAsync<BatchTestException>(() => batch.TranslateAsync(_japanese));
+      Assert.IsTrue(batchTime < rawTime, "No performance gain");
     }
   }
 
-  class BatchTestException : Exception { }
+  internal class BatchTestException : Exception { }
 
-  class ThrowEhnd : IEhnd {
+  internal class EhndMock : IEhnd {
+    public List<string> Receivals = [];
+
+    public async Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
+      Receivals.Add(japanese);
+      Trace.WriteLine($"- {japanese}");
+      await Task.Yield();
+      return japanese;
+    }
+  }
+
+  internal class ThrowingEhnd : IEhnd {
+
     public Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
       throw new BatchTestException();
-    }
-  }
-
-  class EhndMock : IEhnd {
-    private readonly ITestOutputHelper _output;
-    public EhndMock(ITestOutputHelper output) {
-      _output = output;
-    }
-
-    public List<string> Receivals = new();
-
-    public Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null) {
-      Receivals.Add(japanese);
-      _output.WriteLine($"- {japanese}");
-      return Task.FromResult(japanese);
     }
   }
 }

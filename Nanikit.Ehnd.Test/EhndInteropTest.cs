@@ -1,24 +1,20 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
+
 namespace Nanikit.Ehnd.Test {
-  using System.Linq;
-  using Xunit;
-  using Xunit.Abstractions;
 
+  [TestClass]
   public class EhndInteropTest {
-    private readonly ITestOutputHelper _output;
 
-    public EhndInteropTest(ITestOutputHelper output) {
-      _output = output;
-    }
-
-    [Fact]
+    [TestMethod]
     public void TestSearchPaths() {
       var paths = EhndInterop.GetDllSearchPaths("a").ToList();
-      foreach (var path in paths) {
-        _output.WriteLine(path);
+      foreach (string? path in paths) {
+        Trace.WriteLine(path);
       }
 
-      Assert.Equal("a", paths[0]);
-      Assert.True(paths.Count > 1);
+      Assert.AreEqual("a", paths[0]);
+      CollectionAssert.Contains(paths, @"C:\Program Files (x86)\ChangShinSoft\ezTrans XP\J2KEngine.dll");
     }
   }
 }
