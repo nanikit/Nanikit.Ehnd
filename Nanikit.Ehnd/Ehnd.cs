@@ -4,10 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Nanikit.Ehnd {
+
   /// <summary>
   /// Deterministic japanese to korean translation engine.
   /// </summary>
   public interface IEhnd {
+
     Task<string> TranslateAsync(string japanese, CancellationToken? cancellationToken = null);
   }
 
@@ -17,12 +19,11 @@ namespace Nanikit.Ehnd {
   public class Ehnd : IEhnd {
     public static readonly string DllName = EhndInterop.DllName;
 
-    /// <summary>
-    /// Returns guessed eztrans installed directory.
-    /// </summary>
-    public static string? GetEztransDirFromReg() {
-      return EhndInterop.GetEztransDirFromReg();
-    }
+    private readonly J2K_FreeMem _j2kFree;
+
+    private readonly J2K_TranslateMMNTW _j2kMmntw;
+
+    private readonly SemaphoreSlim _semaphore = new(1);
 
     /// <summary>
     /// Load ehnd. Throws EhndException if failed.
@@ -32,6 +33,21 @@ namespace Nanikit.Ehnd {
       var eztransDll = EhndInterop.LoadDll(dllPath);
       _j2kFree = EhndInterop.GetFuncAddress<J2K_FreeMem>(eztransDll, "J2K_FreeMem");
       _j2kMmntw = EhndInterop.GetFuncAddress<J2K_TranslateMMNTW>(eztransDll, "J2K_TranslateMMNTW");
+    }
+
+    /// <summary>
+    /// Returns guessed eztrans installed directory.
+    /// </summary>
+    public static string? GetEztransDirFromReg() {
+      return EhndInterop.GetEztransDirFromReg();
+    }
+
+    /// <summary>
+    /// Returns true if Hdor dictionary is installed. Not thread safe.
+    /// </summary>
+    public bool IsHdorEnabled() {
+      string? chk = Translate("蜜ドル辞典");
+      return chk?.Contains("OK") ?? false;
     }
 
     /// <summary>
@@ -63,24 +79,14 @@ namespace Nanikit.Ehnd {
       }
     }
 
-    /// <summary>
-    /// Returns true if Hdor dictionary is installed. Not thread safe.
-    /// </summary>
-    public bool IsHdorEnabled() {
-      string? chk = Translate("蜜ドル辞典");
-      return chk?.Contains("OK") ?? false;
-    }
-
-    private readonly J2K_FreeMem _j2kFree;
-    private readonly J2K_TranslateMMNTW _j2kMmntw;
-
-    private readonly SemaphoreSlim _semaphore = new(1);
-
     // FreeLibrary를 호출하면 Access violation이 뜬다.
 
     #region PInvoke
+
     internal delegate void J2K_FreeMem(IntPtr ptr);
+
     internal delegate IntPtr J2K_TranslateMMNTW(int data0, [MarshalAs(UnmanagedType.LPWStr)] string jpStr);
-    #endregion
+
+    #endregion PInvoke
   }
 }

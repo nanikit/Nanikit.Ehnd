@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Nanikit.Ehnd {
+
   /// <summary>
   /// Eztrans trims the string, so pre/post process are required to preserve spaces.
   /// </summary>
@@ -12,31 +13,25 @@ namespace Nanikit.Ehnd {
   /// </remarks>
   internal class EztransEscaper {
 
-    enum EscapeKind {
-      None,
-      Symbol,
-      Space
-    }
-
-    private static readonly string _escaper = "[;:}";
-    private static readonly EncodingTester _shiftJis = new(932);
     private static readonly Regex _decodeRegex =
       new(@"(\r\n)|(\[;:})|[\r\[]|[^\r\[]+", RegexOptions.Compiled);
 
-    /// <summary>
-    /// Filter characters which can be modified if repeated.
-    /// </summary>
-    private static bool IsSequenceMutableSymbol(char c) {
-      return "─―#\\".IndexOf(c) != -1;
-    }
+    private static readonly string _escaper = "[;:}";
 
-    /// <summary>
-    /// Test whether there is a possibility of the single letter falsification 
-    /// </summary>
-    private static bool IsUnsafeChar(char c) {
-      return c == '@' // Hdor escape character
-        || c == '-' // It may be changed to ―
-        || !_shiftJis.IsEncodable(c);
+    private static readonly EncodingTester _shiftJis = new(932);
+
+    private readonly StringBuilder buffer = new();
+
+    private readonly StringBuilder escaping = new();
+
+    private readonly List<string> preserveds = new();
+
+    private EscapeKind kind = EscapeKind.None;
+
+    private enum EscapeKind {
+      None,
+      Symbol,
+      Space
     }
 
     public string Escape(string notEscaped) {
@@ -78,10 +73,21 @@ namespace Nanikit.Ehnd {
       return buffer.ToString();
     }
 
-    private readonly List<string> preserveds = new();
-    private readonly StringBuilder buffer = new();
-    private readonly StringBuilder escaping = new();
-    private EscapeKind kind = EscapeKind.None;
+    /// <summary>
+    /// Filter characters which can be modified if repeated.
+    /// </summary>
+    private static bool IsSequenceMutableSymbol(char c) {
+      return "─―#\\".IndexOf(c) != -1;
+    }
+
+    /// <summary>
+    /// Test whether there is a possibility of the single letter falsification
+    /// </summary>
+    private static bool IsUnsafeChar(char c) {
+      return c == '@' // Hdor escape character
+        || c == '-' // It may be changed to ―
+        || !_shiftJis.IsEncodable(c);
+    }
 
     private bool FeedEscape(char c) {
       if (IsSequenceMutableSymbol(c)) {
@@ -97,13 +103,6 @@ namespace Nanikit.Ehnd {
       else {
         FlushSpaces();
         return false;
-      }
-    }
-
-    private void SetEscapingKind(EscapeKind value) {
-      if (kind != value) {
-        FlushSpaces();
-        kind = value;
       }
     }
 
@@ -124,6 +123,13 @@ namespace Nanikit.Ehnd {
       else {
         buffer.Append(_escaper);
         preserveds.Add(space);
+      }
+    }
+
+    private void SetEscapingKind(EscapeKind value) {
+      if (kind != value) {
+        FlushSpaces();
+        kind = value;
       }
     }
   }
