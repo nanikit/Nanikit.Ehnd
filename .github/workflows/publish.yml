@@ -8,7 +8,7 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
     env:
       DOTNET_NOLOGO: true
@@ -20,14 +20,15 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup
-        uses: actions/setup-dotnet@main
-        with:
-          dotnet-version: "8.0"
+        run: |
+          iwr https://dot.net/v1/dotnet-install.ps1 -outfile install-dotnet.ps1
+          .\install-dotnet.ps1 -Architecture x86 -DryRun -Version 8.0
       - name: Test
         run: dotnet test --filter 'TestCategory != NoCi'
       - id: versioning
         name: Set publish
-        if: matrix.os == 'ubuntu-latest'
+        # if: matrix.os == 'ubuntu-latest'
+        shell: bash
         run: |
           version="$(nbgv get-version -v SimpleVersion)$(nbgv get-version -v PrereleaseVersion)"
           if [ -z "$(git tag -l v$version)" ] && [ -n "${{ secrets.NUGET_API_KEY }}" ]; then
