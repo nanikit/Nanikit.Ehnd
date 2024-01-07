@@ -1,28 +1,60 @@
-name: nuget publish
+name: Test & Publish
 
 on:
   push:
-    branches: [release]
+    branches: [main, dev]
 
 jobs:
-  github-publish:
-    runs-on: windows-latest
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     env:
       DOTNET_NOLOGO: true
+    outputs:
+      version: ${{ steps.versioning.outputs.version }}
     steps:
-      # Checkout the repo
       - name: Checkout
         uses: actions/checkout@main
         with:
           fetch-depth: 0
-      # Setup .NET Core SDK
       - name: Setup
         uses: actions/setup-dotnet@main
         with:
-          dotnet-version: "6.0"
-      # Run dotnet build and package
-      - name: Package
-        run: dotnet pack --configuration Release
-      # Publish the package to GitHub Package Registry
+          dotnet-version: "8.0"
+      - name: Test
+        run: dotnet test --filter 'TestCategory != NoCi'
+      - id: versioning
+        name: Set publish
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          version="$(nbgv get-version -v SimpleVersion)$(nbgv get-version -v PrereleaseVersion)"
+          if [ -z "$(git tag -l v$version)" ] && [ -n "${{ secrets.NUGET_API_KEY }}" ]; then
+            echo version=$version >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    needs: test
+    if: needs.test.outputs.version && github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+      - name: Setup
+        uses: actions/setup-dotnet@main
+        with:
+          dotnet-version: "8.0"
       - name: Publish
-        run: dotnet nuget push Nanikit.Ehnd\bin\x86\Release\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        run: |
+          version=${{needs.test.outputs.version}}
+          dotnet pack --include-source --configuration Release -p:Version=$version
+          dotnet nuget push Nanikit.Ehnd/bin/Release/*.symbols.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json
+          git tag v$version
+          git push origin v$version
